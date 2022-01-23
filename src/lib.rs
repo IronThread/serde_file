@@ -53,16 +53,15 @@ impl<'a, T: 'a> Deserialize<'a> for BytesSer<T> {
     }
 }
 
-/// Little wrapper over an [`OpenOptions`],a [`File`] and it's path with the purporse of
-/// implementing [`Serialize`] and [`Deserialize`],this wrapper implements exactly the same traits
-/// as the [`File`] in the way it does and also [derefs][`Deref`] to it.
+/// Little wrapper over an [`OpenOptions`],a [`File`] and it's path,in a [`PathBuf`],with the
+/// purpose of implementing [`Serialize`] and [`Deserialize`],this wrapper implements exactly the 
+/// same traits as the [`File`] in the way it does and also [derefs][`Deref`] to it.
 #[derive(Debug)]
 // todo: remove the unsafe BytesSer wrapper once OpenOptions it's supported in serde
 pub struct SerdeFile(BytesSer<OpenOptions>, File, PathBuf);
 
 impl SerdeFile {
-    /// Creates a new `Self` opening a [`File`] with [`OpenOptions::open`] on `x` and
-    /// the path `path` [`canonicalize`]d.
+    /// Creates a new `Self` opening a [`File`] with [`OpenOptions::open`] on `x` at the given path.
     pub fn open<P: AsRef<Path>>(x: &OpenOptions, path: P) -> io::Result<Self> {
         // technique copied from the std to being able to inline a function that have generics
         // just make a function that does not have it and inline it
@@ -88,6 +87,8 @@ impl SerdeFile {
         &self.0.0
     }
 
+    /// Returns the [`OpenOptions`] used to open the inner [`File`],the [`File`] and the path
+    /// canonicalized. 
     pub fn into_inner(self) -> (OpenOptions, File, PathBuf) {
         let Self(options, file, path_buf) = self;
 
@@ -164,6 +165,7 @@ impl DerefMut for SerdeFile {
 }
 
 impl Serialize for SerdeFile {
+    /// Serializes the [`PathBuf`] to the file and the [`OpenOptions`] that opened.
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         (&self.0, &self.2).serialize(serializer)
     }
@@ -173,6 +175,8 @@ impl<'a> Deserialize<'a> for SerdeFile
 where
     Self: 'a,
 {
+    /// Deserializes the [`PathBuf`] to the file and the [`OpenOptions`] to open the file
+    /// returning an error,for example,if the file does not longer exist at that path.
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'a>,

@@ -1,0 +1,18 @@
+[package]
+name = "serde_file" 
+version = "0.1.0"
+authors = ["IronThread <santinofuenteskillian@gmail.com>"]
+edition = "2018"
+license = "Unlicense"
+readme = "README.md"
+description = "Support serde for File."
+repository = "https://github.com/IronThread/serde_file"
+keywords = ["file", "serde"]
+categories = []
+
+[dependencies]
+serde = "1"
+
+[dev-dependencies]
+bincode = "1"
+scopeguard = "1"
